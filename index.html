@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EKAMBANI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#176b2b">
+<meta name="description" content="EKAMBANI - Technology • Care • Solutions">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-180.png">
+<meta name="application-name" content="EKAMBANI">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="EKAMBANI">
+<script>
+/* Capture the native install prompt as early as possible so it is never missed. */
+window.deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',function(event){event.preventDefault();window.deferredInstallPrompt=event;window.dispatchEvent(new Event('ekambani-install-ready'))});
+</script>
+<style>
+html,body{width:100%;height:100%;margin:0;padding:0}
+#app-frame{position:fixed;top:0;left:0;width:100%;height:100%;border:none}
+#connection-screen{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;box-sizing:border-box;padding:24px;background:#fff;color:#202124;font-family:Arial,sans-serif;text-align:center}
+#connection-screen.visible{display:flex}
+#connection-message{width:100%;max-width:360px}
+#connection-message h2{margin:0 0 12px;font-size:22px}
+#connection-message p{margin:0 0 20px;color:#5f6368;font-size:15px;line-height:1.5}
+#refresh-button{min-width:130px;padding:12px 22px;border:0;border-radius:6px;background:#176b2b;color:#fff;font-size:16px;cursor:pointer}
+#install-bar{position:fixed;z-index:9999;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));display:none;align-items:center;justify-content:space-between;gap:10px;box-sizing:border-box;padding:10px 12px;border-radius:12px;background:#fff;color:#202124;box-shadow:0 3px 18px #0003;font-family:Arial,sans-serif}
+#install-bar.visible{display:flex}
+#install-copy{min-width:0}
+#install-copy strong{display:block;font-size:14px}
+#install-copy span{display:block;margin-top:3px;color:#5f6368;font-size:12px}
+#install-actions{display:flex;flex:0 0 auto;gap:7px}
+#install-button,#not-now-button{border:0;border-radius:7px;padding:10px 12px;font-size:13px;cursor:pointer;white-space:nowrap}
+#install-button{background:#176b2b;color:#fff;font-weight:700}
+#not-now-button{background:#eceff1;color:#202124}
+#install-help{position:fixed;z-index:10001;inset:0;display:none;align-items:center;justify-content:center;padding:22px;box-sizing:border-box;background:#0007;font-family:Arial,sans-serif}
+#install-help.visible{display:flex}
+#install-help-card{width:100%;max-width:380px;padding:22px;border-radius:14px;background:#fff;color:#202124;line-height:1.5}
+#install-help-card h2{margin:0 0 10px;font-size:20px}
+#install-help-card p{margin:0 0 16px;font-size:14px}
+#close-help{display:block;margin-left:auto;padding:10px 18px;border:0;border-radius:7px;background:#176b2b;color:#fff;font-size:14px}
+@media(max-width:420px){#install-bar{left:8px;right:8px;padding:9px;gap:6px}#install-copy span{font-size:11px}#install-button,#not-now-button{padding:10px 9px;font-size:12px}}
+</style>
+</head>
+<body>
+<!-- Existing Apps Script iframe URL and full-screen dimensions retained. -->
+<iframe id="app-frame" src="https://script.google.com/macros/s/AKfycbzWXYPuAjDMENbLpyKIJEhLHAxUUKoVlFB-mPF0oEQu50yvFv73asDFjuF4E4UEs-44/exec" width="100%" height="100%" allowfullscreen="true"></iframe>
+
+<div id="connection-screen" role="status" aria-live="polite"><div id="connection-message">
+<h2>No internet connection</h2><p id="connection-text">Please connect to the internet and try again.</p>
+<button id="refresh-button" type="button">Refresh</button></div></div>
+
+<div id="install-bar" aria-label="Install EKAMBANI application">
+<div id="install-copy"><strong>Install EKAMBANI</strong><span>Get the app on your device</span></div>
+<div id="install-actions"><button id="install-button" type="button">Install</button><button id="not-now-button" type="button">Not now</button></div>
+</div>
+<div id="install-help" role="dialog" aria-modal="true" aria-labelledby="install-help-title"><div id="install-help-card">
+<h2 id="install-help-title">Install EKAMBANI</h2><p id="install-help-text"></p><button id="close-help" type="button">Close</button>
+</div></div>
+
+<script>
+const appFrame=document.getElementById('app-frame');
+const connectionScreen=document.getElementById('connection-screen');
+const connectionText=document.getElementById('connection-text');
+const refreshButton=document.getElementById('refresh-button');
+let connectionTimer=null;
+function showConnectionMessage(message){connectionText.textContent=message;connectionScreen.classList.add('visible')}
+function hideConnectionMessage(){connectionScreen.classList.remove('visible')}
+function startConnectionCheck(){
+ clearTimeout(connectionTimer);
+ if(!navigator.onLine){showConnectionMessage('Please connect to the internet and try again.');return}
+ hideConnectionMessage();
+ connectionTimer=setTimeout(()=>showConnectionMessage('The website is taking too long to respond. Check your connection and refresh.'),15000);
+}
+appFrame.addEventListener('load',()=>{clearTimeout(connectionTimer);if(navigator.onLine)hideConnectionMessage();else showConnectionMessage('Please connect to the internet and try again.')});
+window.addEventListener('offline',()=>{clearTimeout(connectionTimer);showConnectionMessage('No internet connection. Please connect and refresh.')});
+window.addEventListener('online',()=>showConnectionMessage('Internet connection detected. Tap Refresh to try again.'));
+refreshButton.addEventListener('click',()=>{
+ if(!navigator.onLine){showConnectionMessage('No internet connection. Please connect and try again.');return}
+ showConnectionMessage('Checking your connection. Please wait...');startConnectionCheck();
+ try{appFrame.src=appFrame.src}catch(e){showConnectionMessage('Unable to reach the website. Please try again.')}
+});
+
+/* Installation banner: "Not now" lasts only until refresh/reopen. */
+const installBar=document.getElementById('install-bar');
+const installButton=document.getElementById('install-button');
+const notNowButton=document.getElementById('not-now-button');
+const installHelp=document.getElementById('install-help');
+const installHelpText=document.getElementById('install-help-text');
+const ua=navigator.userAgent||'';
+const isIPadOS=/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1;
+const isIOS=/iPhone|iPad|iPod/i.test(ua)||isIPadOS;
+const isAndroid=/Android/i.test(ua);
+const isWindows=/Windows/i.test(ua);
+const isMac=/Macintosh/i.test(ua)&&!isIPadOS;
+const isFirefox=/Firefox|FxiOS/i.test(ua);
+const isEdge=/Edg\/|EdgA\/|EdgiOS\//i.test(ua);
+const isSamsung=/SamsungBrowser/i.test(ua);
+const isSafari=/Safari/i.test(ua)&&!/Chrome|CriOS|Chromium|Edg|EdgA|EdgiOS|OPR|OPT|FxiOS|Android|SamsungBrowser/i.test(ua);
+const isInAppBrowser=/FBAN|FBAV|FB_IAB|Instagram|MicroMessenger|Snapchat|TikTok|WhatsApp|Line\/|; wv\)/i.test(ua);
+function isInstalled(){
+ return matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: minimal-ui)').matches||matchMedia('(display-mode: window-controls-overlay)').matches||navigator.standalone===true||(document.referrer||'').indexOf('android-app://')===0;
+}
+function updateInstallBar(){installBar.classList.toggle('visible',!isInstalled())}
+updateInstallBar();
+window.addEventListener('ekambani-install-ready',updateInstallBar);
+function manualInstallHelp(){
+ if(!window.isSecureContext)return'Installation needs the secure HTTPS address of this app. Please open the HTTPS link in your browser and try again.';
+ if(isInAppBrowser)return'This in-app browser cannot install apps. Open this page in '+(isIOS?'Safari':'Chrome')+' using the menu option “Open in browser”, then tap Install again.';
+ if(isIOS){
+  return (isIPadOS||/iPad/i.test(ua)?'On your iPad':'On your iPhone')+':<br>1. '+(isSafari?'':'Open this page in Safari (or update iOS if your browser has no Share menu option).<br>2. ')+'Tap the Share button (square with an arrow'+(isIPadOS||/iPad/i.test(ua)?', at the top of the screen':', at the bottom or top of the screen; on newer iOS it may be under “…”')+').<br>'+(isSafari?'2':'3')+'. Scroll down and tap “Add to Home Screen”.<br>'+(isSafari?'3':'4')+'. Tap “Add”.';
+ }
+ if(isAndroid){
+  if(isFirefox)return'Tap the browser menu (⋮), then choose “Install”. If the app is already installed, open it from your home screen or app list.';
+  if(isSamsung)return'Tap the browser menu (≡), choose “Add page to”, then “Home screen” (or “Install” if shown). If the app is already installed, open it from your home screen or app list.';
+  return'Tap the browser menu (⋮), then choose “Install app” (not “Add shortcut”), and confirm. If only “Add to Home screen” is listed, choose it and then “Install” when asked. If you do not see these options, update your browser or open this page in Chrome. If the app is already installed, open it from your home screen or app list.';
+ }
+ if(isFirefox)return'Firefox on computers does not offer standard web app installation. Open this page in Google Chrome or Microsoft Edge, then use Install.';
+ if(isEdge)return'In Microsoft Edge, open the menu (…), choose “Apps”, then “Install this site as an app”, and confirm. If it is not listed, the app may already be installed or Edge needs updating.'+(isWindows?' Older Windows versions need the latest browser version that your system supports.':'');
+ if(isSafari&&isMac)return'In Safari on Mac (macOS Sonoma or newer), choose File, then “Add to Dock”, and confirm.';
+ if(/Chrome|Chromium|OPR/i.test(ua))return'In your browser, click the Install icon at the right end of the address bar, or open the menu (⋮) and choose “Cast, save and share”, then “Install page as app” (or “Install EKAMBANI”), and confirm. Do not choose “Create shortcut”, because that is not a real app install. If it is not listed, the app may already be installed or the browser needs updating.'+(isWindows?' Older Windows versions need the latest browser version that your system supports.':'');
+ return'Your browser does not appear to support installing web apps. Open this page in the latest Google Chrome or Microsoft Edge (computers and Android) or Safari (iPhone and iPad), then tap Install again.';
+}
+function showInstallHelp(){installHelpText.innerHTML=manualInstallHelp();installHelp.classList.add('visible')}
+installButton.addEventListener('click',async()=>{
+ if(isInstalled()){installBar.classList.remove('visible');return}
+ const promptEvent=window.deferredInstallPrompt;
+ if(promptEvent){
+  window.deferredInstallPrompt=null;
+  try{
+   promptEvent.prompt();
+   const choice=await promptEvent.userChoice;
+   if(choice&&choice.outcome==='accepted')installBar.classList.remove('visible');
+  }catch(e){showInstallHelp()}
+  return;
+ }
+ showInstallHelp();
+});
+notNowButton.addEventListener('click',()=>installBar.classList.remove('visible'));
+document.getElementById('close-help').addEventListener('click',()=>installHelp.classList.remove('visible'));
+installHelp.addEventListener('click',e=>{if(e.target===installHelp)installHelp.classList.remove('visible')});
+window.addEventListener('appinstalled',()=>{installBar.classList.remove('visible');deferredInstallPrompt=null});
+try{matchMedia('(display-mode: standalone)').addEventListener('change',()=>{if(isInstalled())installBar.classList.remove('visible')})}catch(e){}
+
+/* Cache the GitHub Pages shell only. The external iframe still needs internet. */
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(e=>console.error('Service worker registration failed:',e))}
+
+/* Original fullscreen function retained. */
+window.onload=function(){
+ document.querySelector('iframe').requestFullscreen().catch(err=>{
+  console.error('Error attempting to enable full-screen mode:',err.message);
+ });
+};
+</script>
+</body>
+</html>
